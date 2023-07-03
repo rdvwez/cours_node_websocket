@@ -17,7 +17,18 @@ const io = new Server (server, {
 });
 
 io.on('connection', (socket) => {
-    console.log(`User connected : ${socket.id}`)
+    console.log(`User connected : ${socket.id}`);
+    socket.on("send_message", (data) =>{
+        socket.broadcast.emit("recieve_massaga", data);
+        console.log(data);
+    });
+
+    socket.on("disconnect", () =>{
+        console.log(`User disconnected : ${socket.id}`);
+    })
+;
+
+    
 });
 
 server.listen(3001, () => {
