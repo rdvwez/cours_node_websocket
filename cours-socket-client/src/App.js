@@ -1,34 +1,23 @@
-
 import './App.css';
-import io from 'socket.io-client'
-import { useEffect, useState } from 'react';
+import Home from './components/Home';
+import Chat from './components/Chat';
+import SignUp from './components/SignUp';
+import io from 'socket.io-client';
+import {BrowserRouter, Routes, Route} from 'react-router-dom/dist/umd/react-router-dom.development';
 
-const socket = io.connect('http://localhost:3001')
+const socket = io.connect('http://localhost:3001');
 
 function App() {
-
-  const [message, setMessage] = useState("")
-
-  const [messageReceived, setMessageRecieved] = useState("")
-
-  const sendMessage = () => {
-    socket.emit("send_message", {message:message})
-  };
-
-  useEffect(() =>{
-    socket.on("recieve_massaga", (data) =>{
-      setMessageRecieved(data.message)
-      });
-  }, [socket]);
-
   return (
-    <div className="App">
-     <input placeholder='Meassage ...' onChange={(event) => {
-      setMessage(event.target.value);
-     }} />
-    <button onClick={sendMessage}> Send Meassage </button>
-    <p>{messageReceived}</p>
-    </div>
+    <BrowserRouter>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<Home socket={socket}/>}></Route>
+          <Route path="/chat" element={<Chat socket={socket}/>}></Route>
+          <Route path="/signup" element={<SignUp socket={socket}/>}></Route>
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 
