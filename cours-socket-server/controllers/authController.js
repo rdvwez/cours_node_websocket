@@ -5,7 +5,6 @@ require('dotenv').config();
 
 const AuthLogin = async(req, res) => {
 
-    // console.log('NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOONNNNNNNNNNNNNNNNNNNNNNN')
     const body = req.body;
     
     let select = "SELECT * FROM user WHERE username = ?;"
@@ -13,13 +12,10 @@ const AuthLogin = async(req, res) => {
     let connect = userModel.connection();
     
     try {
-        // on lui demande de promesse afin de savoir si il va bien renvoyer les données
         const resultat = await new Promise((resolve, reject) => {
-            // si l'execution a bien eu lieu 
             
             let result = connect.execute(select,[body.username],  function(err, results, fields) {
-                // si lemail existe déjà on renvoi erreur dans le catch
-                // console.log(results)
+
                 if (results.length > 0) {
                     return resolve(results)
                 }
@@ -28,7 +24,6 @@ const AuthLogin = async(req, res) => {
             })
     
         })
-        // console.log(resultat)
         if (!await argon2.verify(resultat[0].password, body.password)) {
             return res.status(409).json({
                 error: true,
@@ -40,7 +35,6 @@ const AuthLogin = async(req, res) => {
         let updateUser = "UPDATE user SET status = ? WHERE id = ?;";
         let array = [1, resultat[0].id]
         let requete = userModel.select(updateUser, array, connect)
-
             
     } catch (error) {
         return res.status(409).json({
@@ -48,10 +42,6 @@ const AuthLogin = async(req, res) => {
             message: ["Password/User "],
         })
     } 
-
-
-    // rechercher les emails correspondant et mettre une erreur qui dit que l'email existe déjà 
-    
     return res.status(200).json({
         error: true,
         message: [''],
@@ -60,6 +50,36 @@ const AuthLogin = async(req, res) => {
     })
 }
 
+
+const AuthLogout = async (req, res) => {
+    let updateUser = "UPDATE user SET status = ? WHERE id = ?;";
+    let connect = userModel.connection();
+  
+    try {
+      const decoded = jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET_KEY);
+  
+      await new Promise((resolve, reject) => {
+        connect.execute(updateUser, [0, decoded.id], function (err, results, fields) {
+          if (err) {
+            return reject(err);
+          }
+          return resolve();
+        });
+      });
+  
+      return res.status(200).json({
+        error: false,
+        message: ['User successfully disconnected'],
+      });
+    } catch (error) {
+      return res.status(409).json({
+        error: true,
+        message: ["Invalid Token"],
+      });
+    }
+  };
+
 module.exports = {
-    AuthLogin
+    AuthLogin,
+    AuthLogout
 }

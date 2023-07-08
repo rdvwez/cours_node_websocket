@@ -1,11 +1,33 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom/dist/umd/react-router-dom.development';
+import axios from 'axios';
 
-function ChatBody({messages}) {
+function ChatBody({messages, socket}) {
   const navigate = useNavigate();
 
   const leaveChat = () => {
-    localStorage.removeItem('username');
+    
+
+    axios.post('http://localhost:3001/auth/logout/',
+     { },
+     {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      }
+    }
+     )
+    .then((response) => {
+      localStorage.removeItem('username');
+      localStorage.removeItem('token');
+      socket.emit('disconnect', { });
+
+    })
+    .catch((error) => {
+      console.log(error);
+    
+    });
+
+
     navigate('/');
     window.location.reload();
   }
@@ -20,17 +42,17 @@ function ChatBody({messages}) {
       <div className='message-container'>
         {messages.map((message) => 
             message.name === localStorage.getItem('username') ? (
-            <div key={message.id} className="message-chats">
+            <div key={message.socketID} className="message-chats">
               <p className="sender-name">{message.name}</p>
               <div className='message-sender'>
-                <p>{message.text}</p>
+                <p>{message.content}</p>
               </div>
             </div>
             ) : (
             <div className="message-chats">
               <p className="sender-name">{message.name}</p>
               <div className='message-recipient'>
-                <p>{message.text}</p>
+                <p>{message.content}</p>
               </div>
             </div>
           )

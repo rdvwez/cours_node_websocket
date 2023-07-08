@@ -1,16 +1,15 @@
 import React, { useState } from 'react'
 
-function ChatFooter({socket}) {
+function ChatFooter({socket, users }) {
   const [message, setMessage] = useState('');
-
   const sendMessage = () => {
-    // alert(localStorage.getItem('token'))
     if (message !== '' && localStorage.getItem('username')) {
-      console.log()
+      
       console.log(message)
       socket.emit('send_message', {
-        text: message,
-        id: socket.id,
+        content: message,
+        socketID: socket.id,
+        receiversId: users.map(user => user.id),
         name: localStorage.getItem('username'),
         token: localStorage.getItem('token')
       });

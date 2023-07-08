@@ -12,17 +12,11 @@ function Home({socket}) {
 
     const handleSubmit = (e) => {
       e.preventDefault();
-      
 
-       // Validation des champs
       if (username === '' || password === '') {
         setError('Veuillez remplir tous les champs');
-        // console.log('Veuillez remplir tous les champs')
-        // alert()
         return;
       }
-
-      
 
       // Effectuer ici votre logique de connexion
       //   Par exemple, envoyer une requête au serveur
@@ -35,9 +29,6 @@ function Home({socket}) {
           const token = response.data.token;
           localStorage.setItem('token', token);
           localStorage.setItem('username', username);
-          // localStorage.setItem('token', token);
-
-          console.log(token)
           
           socket.emit('new_user', {username, socketID: socket.id});
           navigate('/chat');
@@ -91,8 +82,7 @@ function Home({socket}) {
         <br/>
 
         <br/>
-        <button className="home-btn" onClick={handleSubmit}>Connexion</button> 
-        {/* <button type="submit" className="home-btn"  >Connexion</button> */}
+        <button className="home-btn" onClick={handleSubmit}>Connexion</button>
       </form>
 
 

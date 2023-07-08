@@ -6,7 +6,6 @@ require('dotenv').config();
 const createUser = async(req, res) => {
     console.log('Bien recu coté server')
     const body = req.body;
-    // console.log(body.username)
 
     let select = "SELECT * FROM user WHERE username = ?;"
     let connect = userModel.connection();
@@ -14,7 +13,6 @@ const createUser = async(req, res) => {
     const hash = await argon2.hash(body.password);
 
     try {
-        // on lui demande de promesse afin de savoir si il va bien renvoyer les données
         await new Promise((resolve, reject) => {
             // si l'execution a bien eu lieu 
             let result = connect.execute(select,[body.username],  function(err, results, fields) {
@@ -40,13 +38,9 @@ const createUser = async(req, res) => {
     let array = [body.username, hash]
     let requete = userModel.select(sql, array, connect)
 
-    // console.log('>>>>', requete)
-
     var token = jwt.sign({ username: body.username , id:resultat[0].id}, process.env.JWT_SECRET_KEY);
     userModel.disconnect(connect)
 
-    // rechercher les emails correspondant et mettre une erreur qui dit que l'email existe déjà 
-    
     return res.status(200).json({
         error: true,
         message: [''],

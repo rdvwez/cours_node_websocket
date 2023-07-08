@@ -6,7 +6,7 @@ require('dotenv').config();
 
 const getUsers = async(req, res) => {
     let connect = userModel.connection();
-    let select = "SELECT id, username, status, socketID FROM user;";
+    let select = "SELECT id, username, status FROM user;";
     let users = []
     try{
         const decoded = jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET_KEY);

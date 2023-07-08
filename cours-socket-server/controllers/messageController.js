@@ -5,54 +5,54 @@ require('dotenv').config();
 
 const createMessage = async(req, res) => {
     const body = req.body;
+
     
     let connect = userModel.connection();
-
-    // const hash = await argon2.hash(body.password);
+    let lastMmessage = ""
     
     try {
-        // on lui demande de promesse afin de savoir si il va bien renvoyer les données
-        // await new Promise((resolve, reject) => {
-        //     // si l'execution a bien eu lieu 
-        //     let result = connect.execute(insert,array,  function(err, results, fields) {
-        //         // si lemail existe déjà on renvoi erreur dans le catch
-        //         if (results.length > 0) {
-        //             return reject(true)
-        //         }
-        //         // sinon il continue son bout de chemin
-        //         return resolve(false)
-        //     })
-    
-        // })
         const decoded = jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET_KEY);
-     if (decode !==""){
-        let insert = "INSERT INTO message (message, senderID, receiverID) VALUES (?,?,?);"
-        let array = [body.message, body.senderID, body.receiverID]
-        let requete = userModel.select(insert, array, connect)
+
+        let insert = "INSERT INTO messages (content, senderID, receiversID, socketID) VALUES (?,?,?,?);"
+        let array = [body.content, decoded.id, body.receiversId, body.socketID]
+        
+     if (decoded !==""){
+        
+        let saveMessageRequest = userModel.select(insert, array, connect)
+        
      }
 
-        
+    let select = "SELECT messages.id as id, messages.content as content, user.username as name, messages.socketID as socketID FROM messages JOIN user ON messages.senderID = user.id order by messages.id DESC LIMIT 1"
+    const messageResult = await new Promise((resolve, reject) => {
+        connect.execute(select, [], function (err, selectResult) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(selectResult);
+          }
+        });
+      });
+
+      lastMmessage = messageResult
     } catch (error) {
+        console.log("mon test",error)
         return res.status(409).json({
             error: true,
             message: ["Une erreur s'est produite pendant l'enregistrement du message"]
         })
     }
 
-  
-
-    // rechercher les emails correspondant et mettre une erreur qui dit que l'email existe déjà 
-    
     return res.status(200).json({
         error: true,
-        message: ['']
+        message: [''],
+        lastMessage:lastMmessage
     })
 }
 
-
 const getMessages = async(req, res) => {
     let connect = userModel.connection();
-    let select = "SELECT * FROM messages;";
+    let select = "SELECT messages.id as id, messages.content as content, user.username as name, messages.socketID as socketID FROM messages JOIN user ON messages.senderID = user.id;"
+    
     let messages = []
     try{
         const decoded = jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET_KEY);
@@ -87,7 +87,46 @@ const getMessages = async(req, res) => {
     })
 }
 
+const getLastMessage = async(req, res) => {
+    let connect = userModel.connection();
+    let select = "SELECT messages.id as id, messages.content as content, user.username as name, messages.socketID as socketID FROM messages JOIN user ON messages.senderID = user.id order by messages.id DESC LIMIT 1"
+    
+    let lastMmessage = ""
+    try{
+        const decoded = jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET_KEY);
+        if(decoded===''){
+            return res.status(409).json({
+                message: 'Invalid token.',
+            });
+        }
+        const messageResult = await new Promise((resolve, reject) => {
+            connect.execute(select, [], function (err, selectResult) {
+              if (err) {
+                reject(err);
+              } else {
+                resolve(selectResult);
+              }
+            });
+          });
+
+          lastMessage = messageResult
+
+    }catch(error){
+        console.log(error)
+        return res.status(409).json({
+            message: 'Invalid token.',
+        });
+    }
+
+    return res.status(200).json({
+        error: true,
+        message: [''],
+        lastMessage : lastMessage
+    })
+}
+
 module.exports = {
     createMessage,
-    getMessages
+    getMessages,
+    getLastMessage
 }
